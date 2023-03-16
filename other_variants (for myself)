@@ -1,0 +1,95 @@
+import requests
+from bs4 import BeautifulSoup
+import pandas as pd
+
+########################################################
+# 2 var
+url = 'https://omgtu.ru/general_information/faculties/'
+page = requests.get(url)
+soup = BeautifulSoup(page.text, 'html.parser')
+desk = soup.find(class_='main__content').findAll('a')
+file = open('faculties.txt', 'w')
+for item in desk:
+    file.write(item.text + '\n')
+    
+########################################################
+
+# 3 var
+# too similar
+
+########################################################
+
+# 4 var
+def FuncUrl(url):  # передаем необходимый URL адрес
+    page = requests.get(url)  # отправляем запрос методом Get на данный адрес и получаем ответ в переменную
+    soup = BeautifulSoup(page.text, 'html.parser')  # передаем страницу в bs4
+    block = soup.find('div', class_='news-list').find_all('b')  # находим контейнер с нужным классом и находим по тегу
+    return block
+
+d = dict()
+k = 1
+while k <= 155:
+    block = FuncUrl('https://www.omgtu.ru/general_information/news/?PAGEN_1=' + str(k))
+    for item in block:
+        d['News'] = d.get('News', []) + [item.text + '\n']
+    k += 1
+temp = ''
+for value in d.values():
+    temp = ''.join(value)
+with open('text.txt', "w", encoding="utf-8") as f:
+    f.write(temp)
+    
+########################################################
+
+# 9 var 
+
+url = 'https://www.imdb.com/chart/top/?ref_=nv_td_mv250'
+page = requests.get(url)
+print(page.status_code)
+soup = BeautifulSoup(page.text, 'html.parser')
+movies = soup.select('td.titleColumn')
+ratings = soup.findAll(class_='ratingColumn imdbRating')
+lvl = soup.select('td.posterColumn span[name="rk"]')
+# lvl2 = soup.findAll(class_='posterColumn') Так тоже можно писать
+# print(lvl2[0].find('span')['data-value'])
+top_movies = {}
+for el in range(len(movies)):
+    movie_title = movies[el].find('a').text
+    movie_rating = ratings[el].text.replace('\n', '')
+    top_movies[movie_title] = movie_rating
+i = 0
+file = open('file.txt', 'w')
+for movie, rating in top_movies.items():
+    file.write(lvl[i]['data-value'] + '. ' + f'{movie}: {rating} \n')
+    i += 1
+
+########################################################
+
+# 10 var 
+
+k = 1
+d = dict()
+while k <= 5:
+    if k == 1:
+        url = "https://www.chitai-gorod.ru/search?phrase=python"
+    else:
+        url = 'https://www.chitai-gorod.ru/search?phrase=python&page=' + str(k)
+
+    page = requests.get(url)
+
+    soup = BeautifulSoup(page.text, 'html.parser')
+    book = soup.findAll(class_='product-title__head')
+    author = soup.findAll(class_='product-title__author')
+    price = soup.findAll(class_='product-price__value')
+    price_temp = soup.findAll(class_='product-card__price product-card__row')
+    for el in range(len(book)):
+        temp = price_temp[el].find(class_='product-price__value').text if price_temp[el].find(class_='product-price__value') != None else " "
+
+        d['Name'] = d.get('Name', []) + [book[el].text]
+        d['Author'] = d.get('Author', []) + [author[el].text]
+        d['Price'] = d.get('Price', []) + [temp.replace('\xa0', ' ')]
+
+    k += 1
+df = pd.DataFrame(d)
+df.to_excel('./teams.xlsx')
+
