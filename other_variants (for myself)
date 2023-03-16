@@ -19,7 +19,24 @@ for item in desk:
 
 ########################################################
 
-# 4 var
+#4 var
+
+url = 'https://auto.drom.ru/all/#tabs'
+page = requests.get(url)
+soup = BeautifulSoup(page.text, 'html.parser')
+cars = soup.findAll(class_='css-17lk78h e3f4v4l2')
+prices = soup.findAll(class_='css-46itwz e162wx9x0')
+d = dict()
+
+for el in range(11):
+    d[cars[el].text] = prices[el].text.replace("\xa0", " ")
+with open('drom.txt', 'w', encoding='utf-8') as file:
+    for key, value in d.items():
+        file.write(f'{key}: {value}\n')
+        
+########################################################
+
+# 8 var
 def FuncUrl(url):  # передаем необходимый URL адрес
     page = requests.get(url)  # отправляем запрос методом Get на данный адрес и получаем ответ в переменную
     soup = BeautifulSoup(page.text, 'html.parser')  # передаем страницу в bs4
